@@ -1,6 +1,9 @@
 @Author Suleyman Savas
 contact: suleyman_savas@hotmail.com
 
+The origin author is above, and now this version is authored by @Platelets
+contact: wenkanedward@gmail.com
+
 Floating point division written in Chisel - using harmonized parabolic synthesis. The implementation has 6 pipeline stages. When continuously fed, the throughput is 1 result/cycle.
 
 The divisor is inverted and the result is multiplied by the dividend.
