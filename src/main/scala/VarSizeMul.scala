@@ -10,12 +10,12 @@ class VarSizeMul(val size1 : Int, val size2 : Int, val size3 : Int) extends Modu
 // tested and works fine
 
 	val io = IO(new Bundle{
-		val in1 = Input(UInt(width = size1))
-		val in2 = Input(UInt(width = size2))
-		val out = Output(UInt(width = size3))
+		val in1 = Input(UInt(size1.W))
+		val in2 = Input(UInt(size2.W))
+		val out = Output(UInt(size3.W))
 	})
 
-	val result  = Wire(UInt(width = size1 + size2))
+	val result  = Wire(UInt((size1 + size2).W))
 	
 	result := io.in1 * io.in2
 	//io.out := result(size1 + size2 - 3, size1 + size2 - size3-2 )
@@ -27,12 +27,12 @@ class mul2(val size1 : Int, val size2 : Int, val size3 : Int) extends Module {
 // tested and works fine
 
 	val io = IO(new Bundle{
-		val in1 = Input(UInt(width = size1))
-		val in2 = Input(UInt(width = size2))
-		val out = Output(UInt(width = size3))
+		val in1 = Input(UInt(size1.W))
+		val in2 = Input(UInt(size2.W))
+		val out = Output(UInt(size3.W))
 	})
 
-	val result  = Wire(UInt(width = size1 + size2))
+	val result  = Wire(UInt((size1 + size2).W))
 	
 	result := io.in1 * io.in2
 	io.out := result(size1 + size2 - 1, size1 + size2 - size3 )
@@ -44,12 +44,12 @@ class mul3(val size1 : Int, val size2 : Int, val size3 : Int) extends Module {
 // tested and works fine
 
 	val io = IO(new Bundle{
-		val in1 = Input(UInt(width = size1))
-		val in2 = Input(UInt(width = size2))
-		val out = Output(UInt(width = size3))
+		val in1 = Input(UInt(size1.W))
+		val in2 = Input(UInt(size2.W))
+		val out = Output(UInt(size3.W))
 	})
 
-	val result  = Wire(UInt(width = size1 + size2))
+	val result  = Wire(UInt((size1 + size2).W))
 	
 	result := io.in1 * io.in2
 	io.out := result(size1 + size2 - 1, size1 + size2 - size3 )

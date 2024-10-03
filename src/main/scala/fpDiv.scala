@@ -15,9 +15,9 @@ import chisel3.util._
 
 class fpDiv(val w : Int) extends Module{ //w = 32
 	val io = IO(new Bundle{
-		val in1  = Input(UInt(width = w))	
-		val in2  = Input(UInt(width = w))
-		val out  = Output(UInt(width = w))
+		val in1  = Input(UInt(w.W))	
+		val in2  = Input(UInt(w.W))
+		val out  = Output(UInt(w.W))
 	})
 
 	val inverter   = Module(new fpInverter(23))
@@ -25,21 +25,21 @@ class fpDiv(val w : Int) extends Module{ //w = 32
 
 	inverter.io.in1 := io.in2(22, 0)	//mantissa 
 	// delay input1 due to the inverter
-	val in1Reg0 = Reg(init = 0.U, next = io.in1)	// stage 0
-	val in1Reg1 = Reg(init = 0.U, next = in1Reg0)	// stage 1
-	val in1Reg2 = Reg(init = 0.U, next = in1Reg1)	// stage 2
-	val in1Reg3 = Reg(init = 0.U, next = in1Reg2)	// stage 3
+	val in1Reg0 = RegNext(io.in1)	// stage 0
+	val in1Reg1 = RegNext(in1Reg0)	// stage 1
+	val in1Reg2 = RegNext(in1Reg1)	// stage 2
+	val in1Reg3 = RegNext(in1Reg2)	// stage 3
 
 	// delay input2 exponent and sign due to the inverter
-	val in2ExpReg0  = Reg(init = 0.U, next = io.in2(30,23))	// stage 0
-	val in2SignReg0 = Reg(init = 0.U, next = io.in2(31))	// stage 0
-	val in2ExpReg1  = Reg(init = 0.U, next = in2ExpReg0)	// stage 1
-	val in2SignReg1 = Reg(init = 0.U, next = in2SignReg0)	// stage 1
-	val in2ExpReg2  = Reg(init = 0.U, next = in2ExpReg1)	// stage 2
-	val in2SignReg2 = Reg(init = 0.U, next = in2SignReg1)	// stage 2
-	val in2ExpReg3  = Reg(init = 0.U, next = in2ExpReg2)	// stage 3
-	val in2SignReg3 = Reg(init = 0.U, next = in2SignReg2)	// stage 3
-	val invMantReg  = Reg(init = 0.U, next = inverter.io.out(23, 0)) //stage 3
+	val in2ExpReg0  = RegNext(io.in2(30,23))	// stage 0
+	val in2SignReg0 = RegNext(io.in2(31))	// stage 0
+	val in2ExpReg1  = RegNext(in2ExpReg0)	// stage 1
+	val in2SignReg1 = RegNext(in2SignReg0)	// stage 1
+	val in2ExpReg2  = RegNext(in2ExpReg1)	// stage 2
+	val in2SignReg2 = RegNext(in2SignReg1)	// stage 2
+	val in2ExpReg3  = RegNext(in2ExpReg2)	// stage 3
+	val in2SignReg3 = RegNext(in2SignReg2)	// stage 3
+	val invMantReg  = RegNext(inverter.io.out(23, 0)) //stage 3
 
 	val invMant       = invMantReg
 	val negExpTmp     = 254.U - in2ExpReg3

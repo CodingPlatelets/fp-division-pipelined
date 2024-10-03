@@ -11,9 +11,9 @@ class VarSizeAdder(val size1 : Int, val size2 : Int, val size3 : Int) extends Mo
 // tested and works fine
 
 	val io = IO(new Bundle{
-		val in1 = Input(UInt(width = size1))
-		val in2 = Input(UInt(width = size2))
-		val out = Output(UInt(width = size3))
+		val in1 = Input(UInt(size1.W))
+		val in2 = Input(UInt(size2.W))
+		val out = Output(UInt(size3.W))
 	})
 
 	
@@ -26,9 +26,9 @@ class VarSizeSub(val size1 : Int, val size2 : Int, val size3 : Int) extends Modu
 // tested and works fine
 
 	val io = IO(new Bundle{
-		val in1 = Input(UInt(width = size1))
-		val in2 = Input(UInt(width = size2))
-		val out = Output(UInt(width = size3))
+		val in1 = Input(UInt(size1.W))
+		val in2 = Input(UInt(size2.W))
+		val out = Output(UInt(size3.W))
 	})
 
 

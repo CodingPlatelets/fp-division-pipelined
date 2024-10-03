@@ -9,8 +9,8 @@ import chisel3.util.Cat
 
 class MantissaRounder(val n: Int) extends Module {
     val io = IO(new Bundle {
-        val in  = Input(Bits(width = n))
-        val out = Output(Bits(width = n - 1))
+        val in  = Input(Bits(n.W))
+        val out = Output(Bits((n - 1).W))
     })
 
     io.out := io.in(n - 1, 1)// + io.in(0)
@@ -18,9 +18,9 @@ class MantissaRounder(val n: Int) extends Module {
 
 class FPMult(val n: Int) extends Module {
     val io = IO(new Bundle {
-        val a   = Input(Bits(width = n))
-        val b   = Input(Bits(width = n))
-        val res = Output(Bits(width = n))
+        val a   = Input(Bits(n.W))
+        val b   = Input(Bits(n.W))
+        val res = Output(Bits(n.W))
     })
 
     val a_wrap = new FloatWrapper(io.a)
@@ -31,14 +31,14 @@ class FPMult(val n: Int) extends Module {
     val stage1_mantissa = a_wrap.mantissa * b_wrap.mantissa
     val stage1_zero     = a_wrap.zero || b_wrap.zero
 
-    val sign_reg     = Reg(next = stage1_sign)
-    val exponent_reg = Reg(next = stage1_exponent)
-    val mantissa_reg = Reg(next = stage1_mantissa)
-    val zero_reg     = Reg(next = stage1_zero)
+    val sign_reg     = RegNext(stage1_sign)
+    val exponent_reg = RegNext(stage1_exponent)
+    val mantissa_reg = RegNext(stage1_mantissa)
+    val zero_reg     = RegNext(stage1_zero)
 
     val stage2_sign     = sign_reg
-    val stage2_exponent = Wire(UInt(width = a_wrap.exponent.getWidth))
-    val stage2_mantissa = Wire(UInt(width = a_wrap.mantissa.getWidth - 1))
+    val stage2_exponent = Wire(UInt(a_wrap.exponent.getWidth.W))
+    val stage2_mantissa = Wire(UInt((a_wrap.mantissa.getWidth - 1).W))
 
     val (mantissaLead, mantissaSize, exponentSize, exponentSub) = n match {
         case 32 => (47, 23, 8, 127)
@@ -48,23 +48,23 @@ class FPMult(val n: Int) extends Module {
     val rounder = Module(new MantissaRounder(mantissaSize + 1))
        
     when (zero_reg) {
-		stage2_exponent := UInt(0, exponentSize)
-        rounder.io.in   := UInt(0, mantissaSize + 1)
-    } .elsewhen (mantissa_reg(mantissaLead) === Bits(1)) {
-        stage2_exponent := exponent_reg - UInt(exponentSub - 1)
+		stage2_exponent := 0.U( exponentSize.W)
+        rounder.io.in   := 0.U( (mantissaSize + 1).W)
+    } .elsewhen (mantissa_reg(mantissaLead) === 1.U) {
+        stage2_exponent := exponent_reg - (exponentSub - 1).U
         rounder.io.in   := mantissa_reg(mantissaLead - 1,
                                       mantissaLead - mantissaSize - 1)
     } .otherwise {
-        stage2_exponent := exponent_reg - UInt(exponentSub)
+        stage2_exponent := exponent_reg - (exponentSub).U
         rounder.io.in   := mantissa_reg(mantissaLead - 2,
                                       mantissaLead - mantissaSize - 2)
     }
 
     stage2_mantissa := rounder.io.out
 
-    io.res := Cat(stage2_sign.toBits(),
-                  stage2_exponent.toBits(),
-                  stage2_mantissa.toBits())
+    io.res := Cat(stage2_sign.asUInt,
+                  stage2_exponent.asUInt,
+                  stage2_mantissa.asUInt)
 }
 
 class FPMult32 extends FPMult(32) {}
