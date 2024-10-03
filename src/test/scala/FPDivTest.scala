@@ -1,4 +1,4 @@
-package cintacc
+package fputil
 
 import chisel3._
 import chiseltest._
@@ -14,7 +14,7 @@ class FPDivTest extends AnyFlatSpec with ChiselScalatestTester {
 
   behavior.of("tester on fp32 division")
   it should "fp32 division" in {
-    test(new fpDiv(32))
+    test(new FPDiv(32))
       .withAnnotations(annos) { dut =>
         dut.reset.poke(true.B)
         dut.clock.step(1)

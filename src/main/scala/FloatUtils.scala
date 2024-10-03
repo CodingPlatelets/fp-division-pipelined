@@ -1,4 +1,4 @@
-package cintacc
+package fputil
 
 import java.lang.Float.{floatToRawIntBits, intBitsToFloat}
 import java.lang.Double.{doubleToRawLongBits, longBitsToDouble}

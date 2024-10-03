@@ -1,7 +1,7 @@
 // Süleyman Savas, 2016-12-15
 // Halmstad University
 
-package cintacc
+package fputil
 
 import chisel3._
 import chisel3.util._
