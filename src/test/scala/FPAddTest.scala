@@ -16,10 +16,6 @@ class FPAddTest extends AnyFlatSpec with ChiselScalatestTester {
   it should "fp32 adder" in {
     test(new FPAdd(32))
       .withAnnotations(annos) { dut =>
-        dut.reset.poke(true.B)
-        dut.clock.step(1)
-        dut.reset.poke(false.B)
-
         val adder1Nums =
           Seq.tabulate(nums)(n =>
             (if (Random.nextBoolean()) 1 else -1) * (Random.nextInt(randomRange) + 1) * Random.nextFloat()
@@ -30,21 +26,35 @@ class FPAddTest extends AnyFlatSpec with ChiselScalatestTester {
           )
         val resNums = adder1Nums.zip(adder2Nums).map { case (a, b) => a + b }
 
-        for (i <- 0 until nums) {
-          val in1 = java.lang.Float.floatToIntBits(adder1Nums(i))
-          val in2 = java.lang.Float.floatToIntBits(adder2Nums(i))
+        dut.reset.poke(true.B)
+        dut.clock.step(1)
+        dut.reset.poke(false.B)
+        dut.io.a.valid.poke(false.B)
+        dut.io.b.valid.poke(false.B)
 
-          dut.io.a.poke(BigInt(in1 & 0xffffffffL).U)
-          dut.io.b.poke(BigInt(in2 & 0xffffffffL).U)
+        fork {
+          for (i <- 0 until nums) {
+            val in1 = java.lang.Float.floatToRawIntBits(adder1Nums(i)).toBinaryString
+            val in2 = java.lang.Float.floatToRawIntBits(adder2Nums(i)).toBinaryString
+            dut.io.a.bits.poke(BigInt(in1, 2).U)
+            dut.io.b.bits.poke(BigInt(in2, 2).U)
+            dut.io.a.valid.poke(true.B)
+            dut.io.b.valid.poke(true.B)
+            dut.clock.step()
+          }
+          dut.io.a.valid.poke(false.B)
+          dut.io.b.valid.poke(false.B)
+        }.fork {
+          dut.io.res.valid.expect(false.B)
           dut.clock.step(4)
-
-          val calOut = java.lang.Float.intBitsToFloat(dut.io.res.peek().litValue.toInt)
-          val missed = math.abs(calOut - resNums(i)) / resNums(i)
-          // print(s"adder is: ${adder1Nums(i)} + ${adder2Nums(i)} = ${resNums(i)}\n")
-          // print(s"calOut is: ${calOut}\n")
-          // print(s"missed is: ${missed}\n")
-          // print(s"\n")
-          assert(missed.abs < math.pow(2, -20))
+          for (i <- 0 until nums) {
+            dut.io.res.valid.expect(true.B)
+            val calOut = java.lang.Float.intBitsToFloat(dut.io.res.bits.peekInt().toInt)
+            val missed = math.abs(calOut - resNums(i)) / resNums(i)
+            assert(missed.abs < math.pow(2, -20))
+            dut.clock.step()
+          }
+          dut.io.res.valid.expect(false.B)
         }
       }
 
