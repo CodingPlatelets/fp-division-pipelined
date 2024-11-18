@@ -36,9 +36,10 @@ class FPAddStage1(val n: Int) extends Module {
     val out = Valid(new stage1Out(expWidth, mantWidth))
   })
 
+  val dataValid = io.a.valid && io.b.valid
   // 包装输入的浮点数以便提取各个部分
-  val a_wrap = new FloatWrapper(io.a.bits)
-  val b_wrap = new FloatWrapper(io.b.bits)
+  val a_wrap = new FloatWrapper(Mux(dataValid, io.a.bits, 0.U))
+  val b_wrap = new FloatWrapper(Mux(dataValid, io.b.bits, 0.U))
 
   // 扩展指数位以防止减法溢出
   val ext_exp_a = Cat(0.U(1.W), a_wrap.exponent)
@@ -74,7 +75,7 @@ class FPAddStage1(val n: Int) extends Module {
   io.out.bits.sub := reg_sub
 
   // 有效信号传递
-  val valid = RegNext(io.a.valid && io.b.valid)
+  val valid = RegNext(dataValid)
   io.out.valid := valid
 }
 
@@ -184,20 +185,20 @@ class FPAddStage4(val n: Int) extends Module {
   // we need to reverse the sum, since we want the find the most
   // significant 1 instead of the least significant 1
 
-  val mant_out = stage3Input.bits.mant_out
-  val norm_shift = PriorityEncoder(Reverse(mant_out))
+  val mant_in = stage3Input.bits.mant_out
+  val norm_shift = PriorityEncoder(Reverse(mant_in))
 
   // if the mantissa sum is zero, result mantissa and exponent should be zero
-  when(mant_out === 0.U) {
-    stage4Output.bits.mant_out := RegNext(0.U)
-    stage4Output.bits.exp_out := RegNext(0.U)
+  when(mant_in === 0.U) {
+    stage4Output.bits.mant_out := 0.U
+    stage4Output.bits.exp_out := 0.U
   }.otherwise {
-    stage4Output.bits.mant_out := RegNext((mant_out << norm_shift)(mantWidth - 1, 0))
-    stage4Output.bits.exp_out := RegNext(stage3Input.bits.exp_out - norm_shift)
+    stage4Output.bits.mant_out := (mant_in << norm_shift)(mantWidth - 1, 0)
+    stage4Output.bits.exp_out := stage3Input.bits.exp_out - norm_shift
   }
-  stage4Output.bits.sign_out := RegNext(stage3Input.bits.sign_out)
+  stage4Output.bits.sign_out := stage3Input.bits.sign_out
 
-  stage4Output.valid := RegNext(stage3Input.valid)
+  stage4Output.valid := stage3Input.valid
 
 }
 
@@ -234,6 +235,18 @@ class FPAdd(val n: Int) extends Module {
   )
   io.res.valid := stage4.stage4Output.valid
 
+}
+
+object FPAdd {
+
+  def apply(n: Int = 32)(a: UInt, b: UInt, valid: Bool) = {
+    val FPAddModule = Module(new FPAdd(n))
+    FPAddModule.io.a.bits := a
+    FPAddModule.io.b.bits := b
+    FPAddModule.io.a.valid := valid
+    FPAddModule.io.b.valid := valid
+    FPAddModule.io.res
+  }
 }
 
 class FPAdd32 extends FPAdd(32) {}

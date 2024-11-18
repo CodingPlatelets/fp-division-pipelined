@@ -25,6 +25,7 @@ class FPAddTest extends AnyFlatSpec with ChiselScalatestTester {
             (if (Random.nextBoolean()) 1 else -1) * (Random.nextInt(randomRange) + 1) * Random.nextFloat()
           )
         val resNums = adder1Nums.zip(adder2Nums).map { case (a, b) => a + b }
+        println(s"resNums: ${resNums.mkString(", ")}")
 
         dut.reset.poke(true.B)
         dut.clock.step(1)
@@ -46,16 +47,17 @@ class FPAddTest extends AnyFlatSpec with ChiselScalatestTester {
           dut.io.b.valid.poke(false.B)
         }.fork {
           dut.io.res.valid.expect(false.B)
-          dut.clock.step(4)
+          dut.clock.step(3)
           for (i <- 0 until nums) {
             dut.io.res.valid.expect(true.B)
             val calOut = java.lang.Float.intBitsToFloat(dut.io.res.bits.peekInt().toInt)
-            val missed = math.abs(calOut - resNums(i)) / resNums(i)
-            assert(missed.abs < math.pow(2, -20))
+            val missed = math.abs(calOut - resNums(i)) / math.abs(resNums(i))
+            println(f"calOut: ${calOut}%.4f\t resNums: ${resNums(i)}%.4f\t missed: ${missed}%.4f")
+            assert(missed < math.pow(2, -20))
             dut.clock.step()
           }
           dut.io.res.valid.expect(false.B)
-        }
+        }.join()
       }
 
   }

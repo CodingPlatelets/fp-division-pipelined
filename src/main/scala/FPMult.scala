@@ -25,9 +25,10 @@ class FPMult(val n: Int) extends Module {
 
   val mulLatency = 1
   io.res.valid := ShiftRegister(io.a.valid && io.b.valid, mulLatency)
+  val valid = io.a.valid && io.b.valid
 
-  val a_wrap = new FloatWrapper(io.a.bits)
-  val b_wrap = new FloatWrapper(io.b.bits)
+  val a_wrap = new FloatWrapper(Mux(valid, io.a.bits, 0.U))
+  val b_wrap = new FloatWrapper(Mux(valid, io.b.bits, 0.U))
 
   val stage1_sign = a_wrap.sign ^ b_wrap.sign
   val stage1_exponent = a_wrap.exponent + b_wrap.exponent
@@ -64,6 +65,18 @@ class FPMult(val n: Int) extends Module {
   stage2_mantissa := rounder.io.out
 
   io.res.bits := Cat(stage2_sign.asUInt, stage2_exponent.asUInt, stage2_mantissa.asUInt)
+}
+
+object FPMult {
+
+  def apply(n: Int = 32)(a: UInt, b: UInt, valid: Bool) = {
+    val FPMultModule = Module(new FPMult(n))
+    FPMultModule.io.a.bits := a
+    FPMultModule.io.b.bits := b
+    FPMultModule.io.a.valid := valid
+    FPMultModule.io.b.valid := valid
+    FPMultModule.io.res
+  }
 }
 
 class FPMult32 extends FPMult(32) {}
