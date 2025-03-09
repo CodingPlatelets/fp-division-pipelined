@@ -12,15 +12,6 @@ import chisel3.util.Reverse
 import chisel3.util.PriorityEncoder
 import FloatUtils.{doubleAdd, doubleToBigInt, floatAdd, floatToBigInt, getExpMantWidths}
 
-class SatLeftShift(val m: Int, val n: Int) extends Module {
-  val io = IO(new Bundle {
-    val shiftin = Input(UInt(m.W))
-    val shiftby = Input(UInt(n.W))
-    val shiftout = Output(UInt(m.W))
-  })
-
-  io.shiftout := Mux(io.shiftby > m.U, 0.U, io.shiftin >> io.shiftby)
-}
 
 class FPAddStage1(val n: Int) extends Module {
   val (expWidth, mantWidth) = getExpMantWidths(n)
