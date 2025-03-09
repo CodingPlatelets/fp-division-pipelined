@@ -25,6 +25,8 @@ class FPMult(val n: Int) extends Module {
 
   val mulLatency = 1
   io.res.valid := ShiftRegister(io.a.valid && io.b.valid, mulLatency)
+  // printf("fpmul: valid: %d\n", io.a.valid)
+  // printf("fpmul: res valid: %d\n", io.res.valid)
   val valid = io.a.valid && io.b.valid
 
   val a_wrap = new FloatWrapper(Mux(valid, io.a.bits, 0.U))
@@ -45,6 +47,7 @@ class FPMult(val n: Int) extends Module {
   val stage2_mantissa = Wire(UInt((a_wrap.mantissa.getWidth - 1).W))
 
   val (mantissaLead, mantissaSize, exponentSize, exponentSub) = n match {
+    case 16 => (15, 7, 8, 127)
     case 32 => (47, 23, 8, 127)
     case 64 => (105, 52, 11, 1023)
   }
@@ -79,5 +82,6 @@ object FPMult {
   }
 }
 
+class FPMultb16 extends FPMult(16) {}
 class FPMult32 extends FPMult(32) {}
 class FPMult64 extends FPMult(64) {}

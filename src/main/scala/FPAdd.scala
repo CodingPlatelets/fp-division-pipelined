@@ -249,5 +249,6 @@ object FPAdd {
   }
 }
 
+class FPAddb16 extends FPAdd(16) {}
 class FPAdd32 extends FPAdd(32) {}
 class FPAdd64 extends FPAdd(64) {}

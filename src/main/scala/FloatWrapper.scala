@@ -8,6 +8,13 @@ import chisel3.util.Cat
 
 class FloatWrapper(val num: UInt) {
   val (sign: Bool, exponent: UInt, mantissa: UInt, zero: Bool) = num.getWidth match {
+    case 16 =>
+      (
+        num(15).asBool,
+        num(14, 7).asUInt,
+        Cat(Mux(num(14, 7) === 0.U, false.B, true.B), num(6, 0).asUInt),
+        num(14, 0) === 0.U
+      )
     case 32 =>
       (
         num(31).asBool,
@@ -27,5 +34,3 @@ class FloatWrapper(val num: UInt) {
       )
   }
 }
-
-
