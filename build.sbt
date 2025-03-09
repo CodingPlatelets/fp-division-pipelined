@@ -4,15 +4,14 @@ ThisBuild / organization := "com.github.codingplatelets"
 
 val chiselVersion = "6.2.0"
 
-lazy val root = (project in file("."))
+lazy val fputil = (project in file("."))
   .settings(
-    name := "fp-division",
+    name := "fputil",
     libraryDependencies ++= Seq(
       "org.chipsalliance" %% "chisel" % chiselVersion,
       "org.scalatest" %% "scalatest" % "3.2.16" % "test",
       "edu.berkeley.cs" %% "chiseltest" % "6.0.0"
     ),
-    resolvers += "aliyun".at("https://maven.aliyun.com/repository/public"),
     scalacOptions ++= Seq(
       "-language:reflectiveCalls",
       "-deprecation",
@@ -20,7 +19,7 @@ lazy val root = (project in file("."))
       "-Xcheckinit",
       "-Ymacro-annotations"
     ),
-    addCompilerPlugin(("org.chipsalliance" % "chisel-plugin" % chiselVersion).cross(CrossVersion.full))
+    addCompilerPlugin(("org.chipsalliance" % "chisel-plugin" % chiselVersion).cross(CrossVersion.full)),
   )
 
 pomExtra := (
